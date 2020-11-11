@@ -1,8 +1,8 @@
 import pandas as pd
 from ShowStats import models
 
-match_data = pd.read_csv('../ipl/matches.csv', parse_dates=['date'])
-deliveries_data = pd.read_csv('../ipl/deliveries.csv')
+match_data = pd.read_csv('data/matches.csv', parse_dates=['date'])
+deliveries_data = pd.read_csv('data/deliveries.csv')
 
 
 def replace_with_mapping(x, mapping):
