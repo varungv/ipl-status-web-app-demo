@@ -17,7 +17,13 @@ models.Matches.objects.bulk_create(
 )
 deliveries_data['match_id'] = deliveries_data['match_id'].apply(lambda x: replace_with_mapping(x, match_id_mapping))
 deliveries_data = deliveries_data.to_dict(orient='records')
-models.Deliveries.objects.bulk_create(
-    [models.Deliveries(**r) for r in deliveries_data]
-)
+# models.Deliveries.objects.bulk_create(
+#     [models.Deliveries(**r) for r in deliveries_data]
+# )
 
+import numpy as np
+
+delivery_objects = [models.Deliveries(**r) for r in deliveries_data]
+slices = np.array_split(delivery_objects, 1000)
+for slice in slices:
+    models.Deliveries.objects.bulk_create(list(slice))

@@ -14,6 +14,13 @@ class HomePage(View):
         return render(request, 'ShowStats/HomePage.html', {'seasons': seasons})
 
     def post(self, request):
+        """
+            This view returns the home page with the values filled in.
+            Better implementation of this would be to convert all these metrics analysing code snippets into
+            separate REST services and make the call from the browser to get JSON data for these metrics.
+        :param request:
+        :return:
+        """
         season = request.POST['season']
 
         # Top 4 teams in terms of wins

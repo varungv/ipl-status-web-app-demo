@@ -11,7 +11,7 @@
         <form action="." method="post">
             {% csrf_token %}
             <label for="season">Season: </label>
-            <select name="season" onchange="document.getElementById('submit-button').click()">
+            <select name="season" onchange="document.getElementById('submit-button').click()" class="form-control">
                 {% for s in seasons %}
                     <option value={{s.season}} {% if s.season == selected_season %}selected{% endif %}>{{ s.season }}</option>
                 {% endfor %}
@@ -36,8 +36,6 @@
                 </div>
 
                 <div class="col-6">
-                    <b>Top Toss Winners of {{ selected_season }}: </b>{{ top_toss_winners.toss_winner }}, {{ top_toss_winners.count }} times
-                    <hr>
                     <h5>{{ top_team_name }} max wins Venue</h5><div>{{ location_most_wins_for_top_team.venue }}, they have won a total of {{ venue.count }} times.</div>
                     <hr>
                     <h5>IPL Facts</h5>
@@ -83,7 +81,9 @@
         {% endif %}
     </div>
 <script>
-
+{% if not selected_season %}
+    document.getElementById('submit-button').click()
+{% endif %}
 </script>
 </body>
 </html>
