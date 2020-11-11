@@ -37,6 +37,10 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
+    <state x="414" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605133461291">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="414" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.0.1366.728/0.0.1920.1040@0.0.1920.1040" timestamp="1605133461291" />
     <state x="709" y="322" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1605132484260">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -58,11 +62,12 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="655" y="343" key="com.intellij.ide.util.TipDialog/1920.0.1366.728/0.0.1920.1040@0.0.1920.1040" timestamp="1605131759003" />
-    <state x="467" y="83" width="606" height="563" key="find.popup" timestamp="1605123116701">
-      <screen x="0" y="0" width="1366" height="728" />
+    <state x="656" y="119" width="852" height="805" key="find.popup" timestamp="1605133381986">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="467" y="83" width="606" height="563" key="find.popup/0.0.1366.728@0.0.1366.728" timestamp="1605123116701" />
     <state x="657" y="118" width="606" height="804" key="find.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1605105429645" />
+    <state x="656" y="119" width="852" height="805" key="find.popup/1920.0.1366.728/0.0.1920.1040@0.0.1920.1040" timestamp="1605133381986" />
     <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1605112096177">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
