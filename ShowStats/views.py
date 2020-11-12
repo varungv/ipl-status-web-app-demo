@@ -63,7 +63,16 @@ class HomePage(View):
         season_match_ids = Matches.objects.filter(season=season).values('match_id')
 
         # Which Bowler gave away the most number of runs in a match for the selected season
-        worst_economy_bowler = Deliveries.objects.filter(match_id__in=season_match_ids).values('bowler').annotate(runs_sum=Sum('total_runs')).order_by('-runs_sum')[:5]
+        worst_economy_bowler = Deliveries.objects.filter(match_id__in=season_match_ids).values('bowler').annotate(runs_sum=Sum('total_runs')).order_by('-runs_sum')[:6]
+
+        # Extra metrics calculated for pie-chart
+        team_wise_win_count = Matches.objects.filter(season=season).values('winner').annotate(count=Count('winner'))
+
+        season_wise_overal_runs = {}
+        for s in self.get_list_of_seasons():
+            matches = Matches.objects.filter(season=s['season']).values('match_id')
+            total_runs = Deliveries.objects.filter(match_id__in=matches).aggregate(Sum('total_runs'))
+            season_wise_overal_runs[s['season']] = total_runs['total_runs__sum']
 
         return render(request, 'ShowStats/HomePage.html', {
             'selected_season': int(season),
@@ -79,7 +88,9 @@ class HomePage(View):
             'won_by_highest_run_margin': won_by_highest_run_margin,
             'won_by_highest_wicket_margin': won_by_highest_wicket_margin,
             'count_of_won_toss_match': count_of_won_toss_match,
-            'worst_economy_bowler': worst_economy_bowler
+            'worst_economy_bowler': worst_economy_bowler,
+            'team_wise_win_count': team_wise_win_count,
+            'season_wise_overal_runs': season_wise_overal_runs
         })
 
     @staticmethod
