@@ -29,6 +29,10 @@ class Matches(models.Model):
     def __str__(self):
         return f"winner {self.winner}"
 
+    @classmethod
+    def get_list_of_seasons(cls):
+        return cls.objects.values('season').distinct().order_by('season')
+
 
 class Deliveries(models.Model):
     """

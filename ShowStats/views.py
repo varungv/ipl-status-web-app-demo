@@ -2,31 +2,31 @@ from django.shortcuts import render
 from django.views.generic import View
 from django.db.models import Count, Max, Sum, F
 from .models import Matches, Deliveries
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 
 class HomePage(View):
     """
-        Class Based view for loading the homepage
+        View for loading the homepage
     """
 
     def get(self, request):
-        seasons = self.get_list_of_seasons()
+        seasons = Matches.get_list_of_seasons()
         return render(request, 'ShowStats/HomePage.html', {'seasons': seasons})
 
-    def post(self, request):
-        """
-            This view returns the home page with the values filled in.
-            Better implementation of this would be to convert all these metrics analysing code snippets into
-            separate REST services and make the call from the browser to get JSON data for these metrics.
-        :param request:
-        :return:
-        """
-        season = request.POST['season']
 
-        # Top 4 teams in terms of wins
-        # No need to worry about index slicing as the data will surely be available for this query
-        top_4_winners = Matches.objects.values('winner').annotate(count=Count('winner')).order_by('-count')[:4]
+@api_view(['GET'])
+def get_facts(request):
+    """
+        View to get a response of with either generic or season wise facts
+    :param request:
+    :return:
+    """
 
+    season = request.query_params.get('season', None)
+    if season:
+        # Get fact of that particular season
         # Which team won the most number of tosses in the season
         top_toss_winners = Matches.objects.filter(season=season).values('toss_winner').annotate(count=Count('toss_winner')).order_by('-count')[0]
 
@@ -36,18 +36,6 @@ class HomePage(View):
         # Which team won max matches in the whole season
         max_winning_team = Matches.objects.filter(season=season).values('winner').annotate(count=Count('winner')).order_by('-count')[0]
 
-        # Which location has the most number of wins for the top team
-        top_team_name = top_4_winners[0]['winner']
-        location_most_wins_for_top_team = Matches.objects.filter(winner=top_team_name).values('venue').annotate(count=Count('venue')).order_by('-count')[0]
-
-        # Which % of teams decided to bat when they won the toss
-        total_count = Matches.objects.count()
-        batting_chosen_count = Matches.objects.filter(toss_decision='bat').count()
-        batting_chosen_perc = batting_chosen_count * 100 / total_count
-
-        # Which location hosted most number of matches
-        max_matches_location = Matches.objects.values('venue').annotate(count=Count('venue')).order_by('-count')[0]
-
         # Which team won by the highest margin of runs  for the season
         max_run_win = Matches.objects.filter(season=season).aggregate(Max('win_by_runs'))['win_by_runs__max']
         won_by_highest_run_margin = Matches.objects.filter(season=season, win_by_runs=max_run_win)[0]
@@ -56,43 +44,68 @@ class HomePage(View):
         max_wickets_win = Matches.objects.filter(season=season).aggregate(Max('win_by_wickets'))['win_by_wickets__max']
         won_by_highest_wicket_margin = Matches.objects.filter(season=season, win_by_wickets=max_wickets_win)[0]
 
+        facts = [
+            f"<b>{top_toss_winners['toss_winner']}</b> have won the highest number of tosses in the entire season. A total of {top_toss_winners['count']} times",
+            f"<b>{max_man_of_the_match['player_of_match']}</b> was awarded a highest number of player of the match award ({max_man_of_the_match['count']} times)",
+            f"Maximum number of matches was won by <b>{max_winning_team['winner']}</b>",
+            f"<b>{won_by_highest_run_margin.winner}</b> had won by the highest run margin of {won_by_highest_run_margin.win_by_runs} runs. <b>{won_by_highest_run_margin.player_of_match}</b> was awarded the player of the match.",
+            f"<b>{won_by_highest_wicket_margin.winner}</b> had won by the highest wicket margin of {won_by_highest_wicket_margin.win_by_runs} wickets. <b>{won_by_highest_wicket_margin.player_of_match}</b> was awarded the player of the match.",
+        ]
+
+        response = {
+            'heading': f'IPL Facts for {season} Season',
+            'list': facts
+        }
+    else:
+        # Get Generic Facts
+
+        # Top 4 teams in terms of wins
+        # No need to worry about index slicing as the data will surely be available for this query
+        top_4_winners = Matches.objects.values('winner').annotate(count=Count('winner')).order_by('-count')[:4]
+
+        # Which location has the most number of wins for the top team
+        top_team_name = top_4_winners[0]['winner']
+
+        location_most_wins_for_top_team = Matches.objects.filter(winner=top_team_name).values('venue').annotate(count=Count('venue')).order_by('-count')[0]
+
+        # Which % of teams decided to bat when they won the toss
+        batting_chosen_perc = Matches.objects.filter(toss_decision='bat').count() * 100 / Matches.objects.count()
+
+        # Which location hosted most number of matches
+        max_matches_location = Matches.objects.values('venue').annotate(count=Count('venue')).order_by('-count')[0]
+
         # How many times has a team won the toss and the match
         count_of_won_toss_match = Matches.objects.filter(toss_winner__exact=F('winner')).count()
 
-        # Season matches
-        season_match_ids = Matches.objects.filter(season=season).values('match_id')
+        facts = [
+            f"<b>{top_team_name}</b> have had their maximum wins in <b>{location_most_wins_for_top_team['venue']}</b>.",
+            f"<b>{int(batting_chosen_perc)}%</b> of the time teams choose batting when they won the toss.",
+            f"<b>{max_matches_location['count']}</b> matches is played in {max_matches_location['venue']}</b> which makes it the venue where highest number of matches are played in IPL history.",
+            f"<b>{count_of_won_toss_match} instances where teams who have won the toss have also won the match.</b>"
+        ]
 
-        # Which Bowler gave away the most number of runs in a match for the selected season
-        worst_economy_bowler = Deliveries.objects.filter(match_id__in=season_match_ids).values('bowler').annotate(runs_sum=Sum('total_runs')).order_by('-runs_sum')[:6]
+        response = {
+            'heading': 'IPL Generic Facts',
+            'list': facts
+        }
 
-        # Extra metrics calculated for pie-chart
-        team_wise_win_count = Matches.objects.filter(season=season).values('winner').annotate(count=Count('winner'))
+    return Response(response)
 
-        season_wise_overal_runs = {}
-        for s in self.get_list_of_seasons():
-            matches = Matches.objects.filter(season=s['season']).values('match_id')
-            total_runs = Deliveries.objects.filter(match_id__in=matches).aggregate(Sum('total_runs'))
-            season_wise_overal_runs[s['season']] = total_runs['total_runs__sum']
 
-        return render(request, 'ShowStats/HomePage.html', {
-            'selected_season': int(season),
-            'seasons': self.get_list_of_seasons(),
-            'top_4_winners': top_4_winners,
-            'top_toss_winners': top_toss_winners,
-            'max_man_of_the_match': max_man_of_the_match,
-            'max_winning_team': max_winning_team,
-            'location_most_wins_for_top_team': location_most_wins_for_top_team,
-            'top_team_name': top_team_name,
-            'batting_chosen_perc': int(batting_chosen_perc),
-            'max_matches_location': max_matches_location,
-            'won_by_highest_run_margin': won_by_highest_run_margin,
-            'won_by_highest_wicket_margin': won_by_highest_wicket_margin,
-            'count_of_won_toss_match': count_of_won_toss_match,
-            'worst_economy_bowler': worst_economy_bowler,
-            'team_wise_win_count': team_wise_win_count,
-            'season_wise_overal_runs': season_wise_overal_runs
+@api_view(['GET'])
+def team_ranking(request):
+    # team_ranking in terms of wins
+    season = request.query_params.get('season', None)
+    if not season:
+        # No need to worry about index slicing as the data will surely be available for this query
+        ranked_teams = Matches.objects.values('winner').annotate(count=Count('winner')).order_by('-count')
+        return Response({
+            'heading': 'Overall Teams Ranks based on # of wins',
+            'list': [row['winner'] for row in ranked_teams]
         })
-
-    @staticmethod
-    def get_list_of_seasons():
-        return Matches.objects.values('season').distinct().order_by('season')
+    else:
+        ranked_teams = Matches.objects.filter(season=season).values('winner').annotate(count=Count('winner')).order_by('-count')
+        return Response({
+            'heading': f'{season} Season Teams rankings based on # of wins',
+            'list': [row['winner'] for row in ranked_teams]
+        })

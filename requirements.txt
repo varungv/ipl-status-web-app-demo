@@ -6,3 +6,7 @@ psycopg2
 python-decouple
 whitenoise
 pandas
+djangorestframework
+markdown
+django-filter
+randomcolor
