@@ -129,7 +129,7 @@ class ChartJSView(APIView):
 
             elif chart_name == 'over_wise_avg_run_scored':
                 # To create chart for average runs scored at every over
-                query_set = Deliveries.objects.values('over').annotate(runs_avg=Avg('total_runs'), run_sum=Sum('total_runs'))
+                query_set = Deliveries.objects.values('over').annotate(runs_avg=Avg('total_runs')).order_by('over')
                 key_column = 'over'
                 value_columns = ['runs_avg']
                 c_ds = ChartJSDataStructure(query_set, key_column, value_columns, chart_type, title='Average runs per over')
@@ -137,7 +137,7 @@ class ChartJSView(APIView):
             elif chart_name == 'avg_runs_per_over_season':
                 # To create chart for average runs scored at every over
                 match_ids = [row['match_id'] for row in Matches.objects.filter(season=season).values('match_id')]
-                query_set = Deliveries.objects.filter(match_id__in=match_ids).values('over').annotate(runs_avg=Avg('total_runs'), run_sum=Sum('total_runs'))
+                query_set = Deliveries.objects.filter(match_id__in=match_ids).values('over').annotate(runs_avg=Avg('total_runs')).order_by('over')
                 key_column = 'over'
                 value_columns = ['runs_avg']
                 c_ds = ChartJSDataStructure(query_set, key_column, value_columns, chart_type, title=f'Average runs per over in season {season}')
