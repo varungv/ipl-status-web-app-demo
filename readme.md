@@ -1,5 +1,5 @@
 # IPL Stats application
-This is a IPL Stats application built using **Django, HTML and Vanilla JS.**
+This is a IPL Stats application built using **Django, HTML and JS.**
 
 The application is hosted in **Heroku** at this url: https://gale-demo.herokuapp.com/ 
 
